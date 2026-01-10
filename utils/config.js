@@ -1,3 +1,3 @@
-const JWT_SECRET = "some-very-secret-key"; // later this will go into .env
+const JWT_SECRET = process.env.JWT_SECRET || "some-very-secret-key";
 
 module.exports = { JWT_SECRET };

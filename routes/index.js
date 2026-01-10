@@ -1,14 +1,16 @@
-const router = require("express").Router();
+const express = require("express");
+
+const router = express.Router();
 const usersRouter = require("./users");
 const itemsRouter = require("./clothingitem");
 const { login, createUser } = require("../controllers/users");
 const auth = require("../middlewares/auth");
 
-// public
+// Public
 router.post("/signin", login);
 router.post("/signup", createUser);
 
-// protected
+// Protected
 router.use(auth);
 router.use("/users", usersRouter);
 router.use("/items", itemsRouter);

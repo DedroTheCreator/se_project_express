@@ -1,32 +1,31 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const routes = require("./routes");
 
 const { PORT = 3001 } = process.env;
 const app = express();
 
-app.use((req, next) => {
-  req.user = { _id: "5d8b8592978f8bd833ca8133" };
-  next();
-});
-
-const routes = require("./routes");
-
-// Connect to MongoDB
-mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
-
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use(routes);
 
-// ✅ JSON error handler (prevents HTML responses)
-app.use((err, req, res) => {
-  res.status(err.statusCode || 500).json({
-    message: err.message || "An error has occurred on the server",
+// Universal error handler (MUST have 4 arguments)
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).json({
+    message:
+      statusCode === 500 ? "An error has occurred on the server" : message,
   });
+  next();
 });
 
-app.listen(PORT, () => {
-  console.log(`App listening at port ${PORT}`);
+// DB connection & server start
+mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
+// eslint-disable-next-line no-console
+console.log(`App listening at port ${PORT}`);

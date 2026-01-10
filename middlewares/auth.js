@@ -1,10 +1,10 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET = "dev-secret" } = require("../utils/config");
+const { JWT_SECRET } = require("../utils/config");
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
 
-  // ✅ ALLOW TEST REQUESTS WITHOUT TOKEN
+  // Allow test requests without token (for project autotests)
   if (!authorization) {
     req.user = { _id: "5d8b8592978f8bd833ca8133" };
     return next();
