@@ -10,38 +10,37 @@ const {
 const createItem = (req, res) => {
   const { name, weather, imageURL } = req.body;
 
-  ClothingItem.create({ name, weather, imageURL, owner: req.user._id })
+  return ClothingItem.create({ name, weather, imageURL, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "ValidationError")
+      if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
+      }
 
-      res
+      return res
         .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
 };
 
 // GET ALL ITEMS
-const getItems = (req, res) => {
-  ClothingItem.find({})
+const getItems = (req, res) => ClothingItem.find({})
     .then((items) => res.send({ data: items }))
     .catch((err) => {
       console.error(err);
-      res
+      return res
         .status(SERVER_ERROR)
         .send({ message: "An error has occurred on the server" });
     });
-};
 
 // UPDATE ITEM
 const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageURL } = req.body;
 
-  ClothingItem.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     itemId,
     { imageURL },
     { new: true, runValidators: true }
@@ -55,16 +54,17 @@ const updateItem = (req, res) => {
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "ValidationError")
+      if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
-      if (err.name === "CastError")
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
 
-      res
-        .status(err.statusCode || SERVER_ERROR)
-        .send({
-          message: err.message || "An error has occurred on the server",
-        });
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
+
+      return res.status(err.statusCode || SERVER_ERROR).send({
+        message: err.message || "An error has occurred on the server",
+      });
     });
 };
 
@@ -72,7 +72,7 @@ const updateItem = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findById(itemId)
+  return ClothingItem.findById(itemId)
     .orFail(() => {
       const err = new Error("Item not found");
       err.statusCode = NOT_FOUND;
@@ -85,19 +85,19 @@ const deleteItem = (req, res) => {
           .status(FORBIDDEN)
           .send({ message: "You cannot delete items you don't own" });
       }
-      return item.deleteOne().then(() => res.status(204).send({}));
+
+      return item.deleteOne().then(() => res.status(204).send());
     })
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "CastError")
+      if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
 
-      res
-        .status(err.statusCode || SERVER_ERROR)
-        .send({
-          message: err.message || "An error has occurred on the server",
-        });
+      return res.status(err.statusCode || SERVER_ERROR).send({
+        message: err.message || "An error has occurred on the server",
+      });
     });
 };
 
