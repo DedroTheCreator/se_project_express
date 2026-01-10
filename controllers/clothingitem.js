@@ -9,45 +9,36 @@ const {
 // CREATE ITEM
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-
-  if (!name || !weather || !imageUrl) {
-    return res.status(BAD_REQUEST).send({ message: "All fields are required" });
-  }
+  if (!name || !weather || !imageUrl)
+    return res.status(BAD_REQUEST).json({ message: "All fields are required" });
 
   return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
-    .then((item) => res.status(201).send({ data: item }))
+    .then((item) => res.status(201).json({ data: item }))
     .catch((err) => {
-      console.error(err);
-
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-
+      if (err.name === "ValidationError")
+        return res.status(BAD_REQUEST).json({ message: err.message });
       return res
         .status(SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+        .json({ message: "An error has occurred on the server" });
     });
 };
 
 // GET ALL ITEMS
 const getItems = (req, res) =>
   ClothingItem.find({})
-    .then((items) => res.send({ data: items }))
-    .catch((err) => {
-      console.error(err);
-      return res
+    .then((items) => res.status(200).json({ data: items }))
+    .catch(() =>
+      res
         .status(SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+        .json({ message: "An error has occurred on the server" })
+    );
 
 // UPDATE ITEM
 const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
-
-  if (!imageUrl) {
-    return res.status(BAD_REQUEST).send({ message: "imageUrl is required" });
-  }
+  if (!imageUrl)
+    return res.status(BAD_REQUEST).json({ message: "imageUrl is required" });
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
@@ -59,27 +50,21 @@ const updateItem = (req, res) => {
       err.statusCode = NOT_FOUND;
       throw err;
     })
-    .then((item) => res.send({ data: item }))
+    .then((item) => res.status(200).json({ data: item }))
     .catch((err) => {
-      console.error(err);
-
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-      }
-
-      return res.status(err.statusCode || SERVER_ERROR).send({
-        message: err.message || "An error has occurred on the server",
-      });
+      if (err.name === "CastError")
+        return res.status(BAD_REQUEST).json({ message: "Invalid item ID" });
+      return res
+        .status(err.statusCode || SERVER_ERROR)
+        .json({
+          message: err.message || "An error has occurred on the server",
+        });
     });
 };
 
 // DELETE ITEM
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-
   return ClothingItem.findById(itemId)
     .orFail(() => {
       const err = new Error("Item not found");
@@ -87,24 +72,24 @@ const deleteItem = (req, res) => {
       throw err;
     })
     .then((item) => {
-      if (!item.owner.equals(req.user._id)) {
+      if (!item.owner.equals(req.user._id))
         return res
           .status(FORBIDDEN)
-          .send({ message: "You cannot delete items you don't own" });
-      }
-
-      return item.deleteOne().then(() => res.status(204).send());
+          .json({ message: "You cannot delete items you don't own" });
+      return item
+        .deleteOne()
+        .then(() =>
+          res.status(200).json({ message: "Item deleted successfully" })
+        );
     })
     .catch((err) => {
-      console.error(err);
-
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-      }
-
-      return res.status(err.statusCode || SERVER_ERROR).send({
-        message: err.message || "An error has occurred on the server",
-      });
+      if (err.name === "CastError")
+        return res.status(BAD_REQUEST).json({ message: "Invalid item ID" });
+      return res
+        .status(err.statusCode || SERVER_ERROR)
+        .json({
+          message: err.message || "An error has occurred on the server",
+        });
     });
 };
 

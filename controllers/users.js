@@ -6,9 +6,8 @@ const { JWT_SECRET } = require("../utils/config");
 // SIGN UP
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-
   if (!name || !avatar || !email || !password) {
-    return res.status(400).send({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   return bcrypt
@@ -17,64 +16,48 @@ const createUser = (req, res) => {
     .then((user) => {
       const userObj = user.toObject();
       delete userObj.password;
-      return res.status(201).send(userObj);
+      return res.status(201).json({ data: userObj });
     })
     .catch((err) => {
-      console.error(err);
-
-      if (err.code === 11000) {
-        return res.status(409).send({ message: "Email already exists" });
-      }
-      if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
-      }
-
-      return res.status(500).send({ message: "Server error" });
+      if (err.code === 11000)
+        return res.status(400).json({ message: "Email already exists" });
+      if (err.name === "ValidationError")
+        return res.status(400).json({ message: err.message });
+      return res.status(404).json({ message: "User not found" });
     });
 };
 
 // SIGN IN
 const login = (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).send({ message: "Email and password are required" });
-  }
+  if (!email || !password)
+    return res.status(400).json({ message: "Email and password required" });
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return res.send({ token });
+      return res.status(200).json({ token });
     })
-    .catch((err) => {
-      console.error(err);
-      return res.status(401).send({ message: "Invalid email or password" });
-    });
+    .catch(() =>
+      res.status(404).json({ message: "Invalid email or password" })
+    );
 };
 
 // GET CURRENT USER
-const getCurrentUser = (req, res) =>
-  User.findById(req.user._id)
+const getCurrentUser = (req, res) => User.findById(req.user._id)
     .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: "User not found" });
-      }
-      return res.send(user);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      return res.status(200).json({ data: user });
     })
-    .catch((err) => {
-      console.error(err);
-      return res.status(500).send({ message: "Server error" });
-    });
+    .catch(() => res.status(404).json({ message: "User not found" }));
 
 // UPDATE CURRENT USER
 const updateUser = (req, res) => {
   const { name, avatar } = req.body;
-
-  if (!name || !avatar) {
-    return res.status(400).send({ message: "Name and avatar are required" });
-  }
+  if (!name && !avatar)
+    return res.status(400).json({ message: "At least one field required" });
 
   return User.findByIdAndUpdate(
     req.user._id,
@@ -82,18 +65,10 @@ const updateUser = (req, res) => {
     { new: true, runValidators: true }
   )
     .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: "User not found" });
-      }
-      return res.send(user);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      return res.status(200).json({ data: user });
     })
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "ValidationError") {
-        return res.status(400).send({ message: err.message });
-      }
-      return res.status(500).send({ message: "Server error" });
-    });
+    .catch(() => res.status(404).json({ message: "User not found" }));
 };
 
 module.exports = { createUser, login, getCurrentUser, updateUser };
