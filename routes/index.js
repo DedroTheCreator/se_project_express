@@ -7,7 +7,6 @@ const auth = require("../middlewares/auth");
 // public routes
 router.post("/signin", login);
 router.post("/signup", createUser);
-router.get("/items", itemsRouter);
 
 // protect everything below
 router.use(auth);
