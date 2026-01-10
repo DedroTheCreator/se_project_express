@@ -5,6 +5,11 @@ const cors = require("cors");
 const { PORT = 3001 } = process.env;
 const app = express();
 
+app.use((req, next) => {
+  req.user = { _id: "5d8b8592978f8bd833ca8133" };
+  next();
+});
+
 const routes = require("./routes");
 
 // Connect to MongoDB
