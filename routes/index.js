@@ -1,10 +1,17 @@
 const router = require("express").Router();
-const clothingItem = require("./clothingitem");
+const usersRouter = require("./users");
+const itemsRouter = require("./clothingitem");
+const { login, createUser } = require("../controllers/users");
+const auth = require("../middlewares/auth");
 
-router.use("/items", clothingItem);
+// public routes
+router.post("/signin", login);
+router.post("/signup", createUser);
+router.get("/items", itemsRouter);
 
-router.use((req, res) => {
-  res.status(500).send({ message: "Router not found" });
-});
+// protect everything below
+router.use(auth);
+router.use("/users", usersRouter);
+router.use("/items", itemsRouter);
 
 module.exports = router;

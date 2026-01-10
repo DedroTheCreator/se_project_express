@@ -1,0 +1,17 @@
+// utils/errors.js
+
+const BAD_REQUEST = 400;
+const NOT_FOUND = 404;
+const CONFLICT = 409;
+const UNAUTHORIZED = 401;
+const FORBIDDEN = 403;
+const SERVER_ERROR = 500;
+
+module.exports = {
+  BAD_REQUEST,
+  NOT_FOUND,
+  CONFLICT,
+  UNAUTHORIZED,
+  FORBIDDEN,
+  SERVER_ERROR,
+};
