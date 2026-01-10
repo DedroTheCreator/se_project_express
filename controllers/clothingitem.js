@@ -37,28 +37,23 @@ const getItems = (req, res) =>
 const updateItem = (req, res) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
+
   if (!imageUrl)
-    return res.status(BAD_REQUEST).json({ message: "imageUrl is required" });
+    return res.status(400).json({ message: "imageUrl is required" });
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
     { imageUrl },
     { new: true, runValidators: true }
   )
-    .orFail(() => {
-      const err = new Error("Item not found");
-      err.statusCode = NOT_FOUND;
-      throw err;
+    .then((item) => {
+      if (!item) return res.status(404).json({ message: "Item not found" });
+      return res.status(200).json({ data: item });
     })
-    .then((item) => res.status(200).json({ data: item }))
     .catch((err) => {
       if (err.name === "CastError")
-        return res.status(BAD_REQUEST).json({ message: "Invalid item ID" });
-      return res
-        .status(err.statusCode || SERVER_ERROR)
-        .json({
-          message: err.message || "An error has occurred on the server",
-        });
+        return res.status(400).json({ message: "Invalid item ID" });
+      return res.status(500).json({ message: "Server error" });
     });
 };
 
@@ -85,11 +80,9 @@ const deleteItem = (req, res) => {
     .catch((err) => {
       if (err.name === "CastError")
         return res.status(BAD_REQUEST).json({ message: "Invalid item ID" });
-      return res
-        .status(err.statusCode || SERVER_ERROR)
-        .json({
-          message: err.message || "An error has occurred on the server",
-        });
+      return res.status(err.statusCode || SERVER_ERROR).json({
+        message: err.message || "An error has occurred on the server",
+      });
     });
 };
 
