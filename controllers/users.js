@@ -20,7 +20,7 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.code === 11000)
-        return res.status(400).json({ message: "Email already exists" });
+        return res.status(409).json({ message: "Email already exists" });
       if (err.name === "ValidationError")
         return res.status(400).json({ message: err.message });
       return res.status(404).json({ message: "User not found" });
@@ -41,12 +41,13 @@ const login = (req, res) => {
       return res.status(200).json({ token });
     })
     .catch(() =>
-      res.status(404).json({ message: "Invalid email or password" })
+      res.status(401).json({ message: "Invalid email or password" })
     );
 };
 
 // GET CURRENT USER
-const getCurrentUser = (req, res) => User.findById(req.user._id)
+const getCurrentUser = (req, res) =>
+  User.findById(req.user._id)
     .then((user) => {
       if (!user) return res.status(404).json({ message: "User not found" });
       return res.status(200).json({ data: user });
