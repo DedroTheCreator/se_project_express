@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(routes);
 
 // ✅ JSON error handler (prevents HTML responses)
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.status(err.statusCode || 500).json({
     message: err.message || "An error has occurred on the server",
   });
