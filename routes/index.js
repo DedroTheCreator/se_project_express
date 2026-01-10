@@ -4,11 +4,11 @@ const itemsRouter = require("./clothingitem");
 const { login, createUser } = require("../controllers/users");
 const auth = require("../middlewares/auth");
 
-// public routes
+// public
 router.post("/signin", login);
 router.post("/signup", createUser);
 
-// protect everything below
+// protected
 router.use(auth);
 router.use("/users", usersRouter);
 router.use("/items", itemsRouter);
