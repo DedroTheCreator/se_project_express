@@ -8,9 +8,13 @@ const {
 
 // CREATE ITEM
 const createItem = (req, res) => {
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
 
-  return ClothingItem.create({ name, weather, imageURL, owner: req.user._id })
+  if (!name || !weather || !imageUrl) {
+    return res.status(BAD_REQUEST).send({ message: "All fields are required" });
+  }
+
+  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       console.error(err);
@@ -26,7 +30,8 @@ const createItem = (req, res) => {
 };
 
 // GET ALL ITEMS
-const getItems = (req, res) => ClothingItem.find({})
+const getItems = (req, res) =>
+  ClothingItem.find({})
     .then((items) => res.send({ data: items }))
     .catch((err) => {
       console.error(err);
@@ -38,11 +43,15 @@ const getItems = (req, res) => ClothingItem.find({})
 // UPDATE ITEM
 const updateItem = (req, res) => {
   const { itemId } = req.params;
-  const { imageURL } = req.body;
+  const { imageUrl } = req.body;
+
+  if (!imageUrl) {
+    return res.status(BAD_REQUEST).send({ message: "imageUrl is required" });
+  }
 
   return ClothingItem.findByIdAndUpdate(
     itemId,
-    { imageURL },
+    { imageUrl },
     { new: true, runValidators: true }
   )
     .orFail(() => {
@@ -57,7 +66,6 @@ const updateItem = (req, res) => {
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: err.message });
       }
-
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
@@ -79,7 +87,6 @@ const deleteItem = (req, res) => {
       throw err;
     })
     .then((item) => {
-      // Only owner can delete
       if (!item.owner.equals(req.user._id)) {
         return res
           .status(FORBIDDEN)
