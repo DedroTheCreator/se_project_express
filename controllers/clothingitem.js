@@ -86,4 +86,51 @@ const deleteItem = (req, res) => {
     });
 };
 
-module.exports = { createItem, getItems, updateItem, deleteItem };
+// LIKE ITEM
+const likeItem = (req, res) =>
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      return res.status(200).json({ data: item });
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+      return res.status(500).json({ message: "Server error" });
+    });
+
+// UNLIKE ITEM
+const unlikeItem = (req, res) =>
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      return res.status(200).json({ data: item });
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).json({ message: "Invalid item ID" });
+      }
+      return res.status(500).json({ message: "Server error" });
+    });
+
+module.exports = {
+  createItem,
+  getItems,
+  updateItem,
+  deleteItem,
+  unlikeItem,
+  likeItem,
+};
