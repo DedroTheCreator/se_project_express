@@ -19,7 +19,8 @@ const createItem = (req, res, next) => {
 };
 
 // GET ALL ITEMS
-const getItems = (req, res, next) => ClothingItem.find({})
+const getItems = (req, res, next) =>
+  ClothingItem.find({ owner: req.user._id })
     .then((items) => res.status(200).json({ data: items }))
     .catch(next);
 
@@ -41,7 +42,7 @@ const deleteItem = (req, res, next) => {
       return item
         .deleteOne()
         .then(() =>
-          res.status(200).json({ message: "Item deleted successfully" })
+          res.status(200).json({ message: "Item deleted successfully" }),
         );
     })
     .catch((err) => {
@@ -53,10 +54,11 @@ const deleteItem = (req, res, next) => {
 };
 
 // LIKE ITEM
-const likeItem = (req, res, next) => ClothingItem.findByIdAndUpdate(
+const likeItem = (req, res, next) =>
+  ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((item) => {
       if (!item) {
@@ -72,10 +74,11 @@ const likeItem = (req, res, next) => ClothingItem.findByIdAndUpdate(
     });
 
 // UNLIKE ITEM
-const unlikeItem = (req, res, next) => ClothingItem.findByIdAndUpdate(
+const unlikeItem = (req, res, next) =>
+  ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((item) => {
       if (!item) {

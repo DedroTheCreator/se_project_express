@@ -10,10 +10,6 @@ app.use(cors());
 app.use(express.json());
 
 // Always set test user for all requests
-app.use((req, res, next) => {
-  req.user = { _id: "5d8b8592978f8bd833ca8133" };
-  next();
-});
 
 // Debug root: ensure server responds right away (for wait-port)
 app.get("/", (req, res) => {
